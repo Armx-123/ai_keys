@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Puter.js Sign-In Example</title>
+  <script src="https://js.puter.com/v2/"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    #auth-container, #app-container {
+      margin-top: 40px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #app-container {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to My App</h1>
+  <div id="auth-container">
+    <button id="sign-in">Sign in with Puter</button>
+  </div>
+  <div id="app-container">
+    <h2>App Dashboard</h2>
+    <p>You're signed in! Welcome to the protected area.</p>
+    <button id="sign-out">Sign Out</button>
+  </div>
+
+  <script>
+    const authContainer = document.getElementById('auth-container');
+    const appContainer = document.getElementById('app-container');
+    const signInButton = document.getElementById('sign-in');
+    const signOutButton = document.getElementById('sign-out');
+
+    async function updateUI() {
+      if (puter.auth.isSignedIn()) {
+        const user = await puter.auth.getUser();
+        document.querySelector('#app-container p').textContent = `Welcome, ${user.username}!`;
+        authContainer.style.display = 'none';
+        appContainer.style.display = 'block';
+      } else {
+        authContainer.style.display = 'block';
+        appContainer.style.display = 'none';
+      }
+    }
+
+    signInButton.addEventListener('click', async () => {
+      await puter.auth.signIn();
+      updateUI();
+    });
+
+    signOutButton.addEventListener('click', () => {
+      puter.auth.signOut();
+      updateUI();
+    });
+
+    // Check initial auth state
+    updateUI();
+  </script>
+</body>
+</html>   
