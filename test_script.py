@@ -8,16 +8,23 @@ async def main():
         print("Starting browser...")
 
         browser = await uc.start(
-            headless=True,
-            no_sandbox=True,
-            disable_dev_shm_usage=True,
-            browser_executable_path="/usr/bin/google-chrome",
-            browser_args=[
-                "--disable-gpu",
-                "--no-first-run",
-                "--disable-dev-shm-usage",
-            ],
-        )
+    headless=True,
+    no_sandbox=True,
+    disable_dev_shm_usage=True,
+    browser_executable_path="/usr/bin/google-chrome",
+    browser_args=[
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--disable-sync",
+        "--mute-audio",
+        "--autoplay-policy=no-user-gesture-required",
+    ],
+)
 
         print("Opening Google...")
         page = await browser.get("https://www.youtube.com/shorts/hNino-p5jx0")
