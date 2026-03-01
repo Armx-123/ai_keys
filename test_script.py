@@ -1,51 +1,24 @@
 import asyncio
 import nodriver as uc
 import sys
-import os
-import shutil
 
 async def main():
-    # 1. Find the actual Chrome path
-    chrome_path = shutil.which("google-chrome") or shutil.which("google-chrome-stable")
-    print(f"Detected Chrome path: {chrome_path}")
-    
-    # 2. Setup Config
-    config = uc.Config()
-    config.browser_executable_path = chrome_path
-    
-    # IMPORTANT: We set these via attributes, not add_argument
-    config.no_sandbox = True
-    config.headless = False  # Xvfb handles the "display," so nodriver stays "headful"
-    
-    # 3. Add allowed CI-specific arguments
-    args = [
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--disable-setuid-sandbox",
-        "--no-zygote",
-        "--remote-debugging-port=9222"
-    ]
-    for arg in args:
-        config.add_argument(arg)
-
-    print("Attempting to launch browser...")
+    print("Connecting to existing Chrome instance on port 9222...")
     try:
-        # Increase timeout for GitHub Actions overhead
-        browser = await uc.start(config=config, timeout=40)
+        # We connect to the browser we started in the YAML
+        browser = await uc.connect(host="127.0.0.1", port=9222)
         
-        print("Successfully connected to browser!")
+        print("Connected! Navigating to Google...")
         page = await browser.get("https://www.google.com")
         
-        print(f"Current page title: {page.title}")
+        print(f"Success! Page title: {page.title}")
         
-        # Give it a moment to render before the screenshot
         await asyncio.sleep(2)
         await page.save_screenshot("nodriver_final.png")
         
-        await browser.stop()
-        
+        # We don't call browser.stop() because we want the YAML to handle the process
     except Exception as e:
-        print(f"CRITICAL ERROR: {e}")
+        print(f"Connection failed: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
