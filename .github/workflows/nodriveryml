@@ -1,0 +1,39 @@
+name: Nodriver Automation
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  run-nodriver:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Google Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f r.txt ]; then pip install -r r.txt; fi
+
+      - name: Run script with Virtual Display
+        run: |
+          # xvfb-run provides the display environment nodriver needs
+          xvfb-run --auto-servernum python test_script.py
+
+      - name: Upload Screenshot
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nodriver-screenshot
+          path: nodriver_result.png
