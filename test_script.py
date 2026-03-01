@@ -3,30 +3,31 @@ import nodriver as uc
 import sys
 
 async def main():
-    print("Directly attaching to Chrome on 127.0.0.1:9222...")
+    print("Forcefully attaching to Chrome on 127.0.0.1:9222...")
     
-    # We manually build the config to be as empty as possible
-    # This stops the library from trying to "verify" a local browser
+    # We manually build the config object to bypass all 'discovery' logic
     config = uc.Config()
     config.browser_base_endpoint = "http://127.0.0.1:9222"
+    
+    # This is the fix: we give it a dummy path so it doesn't return None
+    # and we set no_sandbox just to be safe
+    config.browser_executable_path = "/usr/bin/google-chrome"
     config.no_sandbox = True
-    config.browser_executable_path = None
 
     try:
-        # We use .create() instead of .start() to avoid the 'root' check logic
+        # Use the low-level create method
         browser = await uc.Browser.create(config)
         
-        print("Successfully attached! Loading page...")
-        # Get the first open tab/page
+        print("Connected! Opening Google...")
         page = await browser.get("https://www.google.com")
         
-        # page.title is a property, not a method
+        # Accessing title as a property (no await!)
         print(f"Success! Page title: {page.title}")
         
-        await page.sleep(3)
+        await asyncio.sleep(5)
         await page.save_screenshot("nodriver_final.png")
         
-        # Just disconnect, don't try to kill the process (YAML handles pkill)
+        # Close connection
         browser.stop()
         print("Done!")
         
