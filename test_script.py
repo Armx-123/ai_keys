@@ -1,33 +1,41 @@
 import asyncio
 import nodriver as uc
-import os
+import sys
 
 async def main():
-    # Force the path to the chrome binary installed via apt-get
-    browser_path = "/usr/bin/google-chrome"
+    print("Initializing configuration...")
     
-    print(f"Starting browser at {browser_path}...")
+    # Manually setting up the config to bypass root/sandbox issues
+    config = uc.Config()
+    config.no_sandbox = True
+    config.headless = False # We use Xvfb to handle the 'head'
     
-    browser = await uc.start(
-        browser_executable_path=browser_path,
-        no_sandbox=True,
-        browser_args=[
-            "--disable-dev-shm-usage",
-            "--disable-setuid-sandbox",
-            "--no-first-run",
-            "--no-zygote"
-        ]
-    )
-    
-    page = await browser.get("https://www.google.com")
-    print(f"Success! Connected to: {page.title}")
-    
-    await page.save_screenshot("nodriver_result.png")
-    await browser.stop()
+    # Critical flags for GitHub Actions/Docker
+    args = [
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--disable-setuid-sandbox",
+        "--no-first-run",
+        "--no-zygote",
+        "--remote-debugging-port=9222",
+    ]
+    for arg in args:
+        config.add_argument(arg)
+
+    print("Launching browser with manual config...")
+    try:
+        # Start using the explicit config object
+        browser = await uc.start(config=config)
+        
+        page = await browser.get("https://www.google.com")
+        print(f"Connection Successful! Title: {page.title}")
+        
+        await page.save_screenshot("nodriver_result.png")
+        await browser.stop()
+        
+    except Exception as e:
+        print(f"Browser launch failed: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    try:
-        uc.loop().run_until_complete(main())
-    except Exception as e:
-        print(f"Script failed with: {e}")
-        exit(1)
+    uc.loop().run_until_complete(main())
