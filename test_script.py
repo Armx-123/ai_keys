@@ -19,7 +19,7 @@ async def main():
         browser = await uc.Browser.create(config)
 
         print("Opening YouTube...")
-        page = await browser.get("https://armx-123.github.io/ai_keys/main.html")
+        page = await browser.get("https://notegpt.io/ai-image-editor")
 
         await asyncio.sleep(5)  # let heavy page settle
 
