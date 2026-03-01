@@ -12,12 +12,13 @@ async def main():
     # 2. Setup Config
     config = uc.Config()
     config.browser_executable_path = chrome_path
-    config.no_sandbox = True  # Crucial for root/GitHub Actions
     
-    # 3. Add CI-specific arguments
-    # We use --headless=new alongside xvfb for maximum stability
+    # IMPORTANT: We set these via attributes, not add_argument
+    config.no_sandbox = True
+    config.headless = False  # Xvfb handles the "display," so nodriver stays "headful"
+    
+    # 3. Add allowed CI-specific arguments
     args = [
-        "--headless=new",
         "--disable-gpu",
         "--disable-dev-shm-usage",
         "--disable-setuid-sandbox",
@@ -29,13 +30,16 @@ async def main():
 
     print("Attempting to launch browser...")
     try:
-        # High timeout for slow CI environments
+        # Increase timeout for GitHub Actions overhead
         browser = await uc.start(config=config, timeout=40)
         
         print("Successfully connected to browser!")
         page = await browser.get("https://www.google.com")
         
         print(f"Current page title: {page.title}")
+        
+        # Give it a moment to render before the screenshot
+        await asyncio.sleep(2)
         await page.save_screenshot("nodriver_final.png")
         
         await browser.stop()
