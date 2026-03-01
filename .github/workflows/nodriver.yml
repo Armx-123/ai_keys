@@ -32,8 +32,9 @@ jobs:
           export $(dbus-launch)
           Xvfb :99 -screen 0 1920x1080x24 &
           export DISPLAY=:99
+          export HOME=/tmp
           
-          # 2. Launch Chrome
+          # 2. Launch Chrome manually
           google-chrome \
             --remote-debugging-port=9222 \
             --remote-allow-origins=* \
@@ -46,8 +47,8 @@ jobs:
             --headless=new \
             --user-data-dir=/tmp/chrome-profile &
           
-          echo "Waiting for Chrome..."
-          sleep 15
+          echo "Waiting for Chrome to initialize..."
+          sleep 20
           
           # 3. Run the script
           python test_script.py
