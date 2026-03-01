@@ -5,26 +5,30 @@ import sys
 async def main():
     print("Directly attaching to Chrome on 127.0.0.1:9222...")
     
-    # We provide a real path so the library doesn't throw a 'NoneType' error,
-    # but we force the endpoint so it connects to our running instance.
     config = uc.Config()
     config.browser_executable_path = "/usr/bin/google-chrome" 
     config.browser_base_endpoint = "http://127.0.0.1:9222"
     config.no_sandbox = True
     
     try:
-        # We use a high timeout to ensure the websocket handshake completes
         browser = await uc.start(config, timeout=30)
-        
-        print("Successfully attached! Loading page...")
+        print("Successfully attached!")
+
+        # Getting the first tab
         page = await browser.get("https://www.google.com")
         
+        # In nodriver, title is a property, NOT an awaited function
         print(f"Success! Page title: {page.title}")
         
-        await asyncio.sleep(2)
+        # Wait for the page to actually load before screenshot
+        await page.sleep(3) 
+        
+        print("Taking screenshot...")
         await page.save_screenshot("nodriver_final.png")
         
-        await browser.stop()
+        # Just close the connection, don't await a return value
+        browser.stop()
+        print("Done!")
         
     except Exception as e:
         print(f"Connection failed: {e}")
