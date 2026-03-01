@@ -16,25 +16,24 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install System Dependencies
+      - name: Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable xvfb libgbm1 libasound2t64 dbus-x11
 
-      - name: Install Python Dependencies
+      - name: Install Python Libs
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Launch Chrome and Run Script
+      - name: Launch Chrome and Run
         run: |
-          # 1. Setup Environment
+          # 1. Start Xvfb and DBus
           export $(dbus-launch)
           Xvfb :99 -screen 0 1920x1080x24 &
           export DISPLAY=:99
-          export HOME=/tmp
           
-          # 2. Launch Chrome manually
+          # 2. Start Chrome in background
           google-chrome \
             --remote-debugging-port=9222 \
             --remote-allow-origins=* \
@@ -47,13 +46,13 @@ jobs:
             --headless=new \
             --user-data-dir=/tmp/chrome-profile &
           
-          echo "Waiting for Chrome to initialize..."
+          echo "Waiting for Chrome DevTools..."
           sleep 20
           
           # 3. Run the script
           python test_script.py
           
-          # 4. Final Cleanup
+          # 4. Cleanup
           pkill google-chrome
 
       - name: Upload Result
