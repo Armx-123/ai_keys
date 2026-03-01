@@ -19,7 +19,8 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y google-chrome-stable xvfb libgbm1 libasound2t64
+          # Adding dbus-x11 to provide the 'bus' Chrome is looking for
+          sudo apt-get install -y google-chrome-stable xvfb libgbm1 libasound2t64 dbus-x11
 
       - name: Install Python Dependencies
         run: |
@@ -28,30 +29,33 @@ jobs:
 
       - name: Launch Chrome and Run Script
         run: |
-          # 1. Start Xvfb
+          # 1. Start a private D-Bus session to stop those bus errors
+          export $(dbus-launch)
+          
+          # 2. Start Xvfb
           Xvfb :99 -screen 0 1920x1080x24 &
           export DISPLAY=:99
           
-          # 2. Launch Chrome manually in the background
+          # 3. Launch Chrome with every possible bypass flag
           google-chrome \
             --remote-debugging-port=9222 \
             --remote-allow-origins=* \
-            --headless=new \
             --no-sandbox \
             --disable-setuid-sandbox \
             --disable-dev-shm-usage \
             --disable-gpu \
             --no-first-run \
             --no-zygote \
+            --headless=new \
             --user-data-dir=/tmp/chrome-profile &
           
-          echo "Waiting for Chrome to fully settle..."
-          sleep 20
+          echo "Waiting for Chrome to initialize..."
+          sleep 15
           
-          # 3. Run the script
+          # 4. Run script
           python test_script.py
           
-          # 4. Cleanup
+          # 5. Cleanup
           pkill google-chrome
 
       - name: Upload Result
