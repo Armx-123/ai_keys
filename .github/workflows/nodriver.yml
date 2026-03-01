@@ -25,7 +25,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           # Using your r.txt file here
-          if [ -f r.txt ]; then pip install -r r.txt; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run script with Virtual Display
         run: |
