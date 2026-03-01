@@ -4,22 +4,29 @@ import sys
 
 async def main():
     print("Connecting to Chrome on port 9222...")
+    
+    # We create a config that points specifically to the running instance
+    # We set browser_executable_path to None so it doesn't try to launch its own
+    config = uc.Config(
+        browser_base_endpoint="http://127.0.0.1:9222",
+        browser_executable_path=None, 
+    )
+    
     try:
-        # In nodriver, you connect to an existing instance by passing the endpoint
-        browser = await uc.start(
-            browser_base_endpoint="http://127.0.0.1:9222",
-        )
+        # Start using the config that points to our manual Chrome instance
+        browser = await uc.start(config)
         
         print("Successfully hooked into Chrome!")
         page = await browser.get("https://www.google.com")
         
         print(f"Current page title: {page.title}")
         
-        # Take the screenshot to prove it worked
         await asyncio.sleep(2)
         await page.save_screenshot("nodriver_final.png")
         
-        # We don't stop the browser here, let the YAML cleanup handle it
+        # In this mode, browser.stop() will just disconnect the CDP session
+        await browser.stop()
+        
     except Exception as e:
         print(f"Connection failed: {e}")
         sys.exit(1)
