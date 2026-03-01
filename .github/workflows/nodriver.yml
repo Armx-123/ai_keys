@@ -19,7 +19,6 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          # Adding dbus-x11 to provide the 'bus' Chrome is looking for
           sudo apt-get install -y google-chrome-stable xvfb libgbm1 libasound2t64 dbus-x11
 
       - name: Install Python Dependencies
@@ -29,14 +28,12 @@ jobs:
 
       - name: Launch Chrome and Run Script
         run: |
-          # 1. Start a private D-Bus session to stop those bus errors
+          # Start D-Bus and Xvfb
           export $(dbus-launch)
-          
-          # 2. Start Xvfb
           Xvfb :99 -screen 0 1920x1080x24 &
           export DISPLAY=:99
           
-          # 3. Launch Chrome with every possible bypass flag
+          # Launch Chrome
           google-chrome \
             --remote-debugging-port=9222 \
             --remote-allow-origins=* \
@@ -49,13 +46,10 @@ jobs:
             --headless=new \
             --user-data-dir=/tmp/chrome-profile &
           
-          echo "Waiting for Chrome to initialize..."
+          echo "Waiting for Chrome..."
           sleep 15
           
-          # 4. Run script
           python test_script.py
-          
-          # 5. Cleanup
           pkill google-chrome
 
       - name: Upload Result
