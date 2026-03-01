@@ -19,7 +19,8 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y google-chrome-stable xvfb libgbm1 libasound2
+          # Updated libasound2 to libasound2t64 for Ubuntu 24.04 compatibility
+          sudo apt-get install -y google-chrome-stable xvfb libgbm1 libasound2t64
 
       - name: Install Python Dependencies
         run: |
@@ -33,8 +34,8 @@ jobs:
 
       - name: Run with Xvfb
         run: |
-          # --auto-servernum prevents 'display in use' errors
-          # we run the script with a 5-second head start for Xvfb
+          # Exporting display and running with a larger timeout buffer
+          export DISPLAY=:99
           xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" python test_script.py
 
       - name: Upload Screenshot
