@@ -28,12 +28,12 @@ jobs:
 
       - name: Launch Chrome and Run Script
         run: |
-          # Start D-Bus and Xvfb
+          # 1. Setup Environment
           export $(dbus-launch)
           Xvfb :99 -screen 0 1920x1080x24 &
           export DISPLAY=:99
           
-          # Launch Chrome
+          # 2. Launch Chrome
           google-chrome \
             --remote-debugging-port=9222 \
             --remote-allow-origins=* \
@@ -49,7 +49,10 @@ jobs:
           echo "Waiting for Chrome..."
           sleep 15
           
+          # 3. Run the script
           python test_script.py
+          
+          # 4. Final Cleanup
           pkill google-chrome
 
       - name: Upload Result
