@@ -16,10 +16,10 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install Google Chrome & Dependencies
+      - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y google-chrome-stable xvfb
+          sudo apt-get install -y google-chrome-stable xvfb dbus-x11 libgbm1
 
       - name: Install Python Dependencies
         run: |
@@ -31,10 +31,11 @@ jobs:
             exit 1
           fi
 
-      - name: Run script with Virtual Display
+      - name: Run with Xvfb and D-Bus
         run: |
-          # The sleep 5 gives Xvfb time to stabilize before the script starts
-          xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" sh -c "sleep 5 && python test_script.py"
+          # Starting dbus and then running the script
+          export $(dbus-launch)
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x1024x24" python test_script.py
 
       - name: Upload Screenshot
         uses: actions/upload-artifact@v4
