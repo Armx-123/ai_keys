@@ -7,27 +7,21 @@ async def main():
     try:
         print("Starting browser...")
 
-        browser = await uc.start(
-    headless=True,
-    no_sandbox=True,
-    disable_dev_shm_usage=True,
-    browser_executable_path="/usr/bin/google-chrome",
-    browser_args=[
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--no-first-run",
-        "--no-zygote",
-        "--single-process",
-        "--disable-extensions",
-        "--disable-background-networking",
-        "--disable-sync",
-        "--mute-audio",
-        "--autoplay-policy=no-user-gesture-required",
-    ],
-)
+        config = uc.Config()
+        config.headless = True
+        config.no_sandbox = True
+        config.disable_dev_shm_usage = True
+        config.browser_executable_path = "/usr/bin/google-chrome"
 
-        print("Opening Google...")
-        page = await browser.get("https://notegpt.io/ai-image-editor")
+        # 🔴 Increase timeout (this is the key fix)
+        config.connection_timeout = 60   # default is lower
+
+        browser = await uc.Browser.create(config)
+
+        print("Opening YouTube...")
+        page = await browser.get("https://armx-123.github.io/ai_keys/main.html")
+
+        await asyncio.sleep(5)  # let heavy page settle
 
         print("Page title:", page.title)
 
@@ -40,10 +34,9 @@ async def main():
         sys.exit(1)
 
     finally:
-        # Stop browser safely
         if browser:
             try:
-                browser.stop()   # 🚀 NO await
+                browser.stop()
             except:
                 pass
 
