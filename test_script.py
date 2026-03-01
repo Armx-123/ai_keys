@@ -2,44 +2,46 @@ import asyncio
 import nodriver as uc
 import sys
 import os
+import shutil
 
 async def main():
-    print("Initializing configuration...")
+    # 1. Find the actual Chrome path
+    chrome_path = shutil.which("google-chrome") or shutil.which("google-chrome-stable")
+    print(f"Detected Chrome path: {chrome_path}")
     
-    # Create a local directory for Chrome to store its data (avoids root /tmp issues)
-    user_data_dir = os.path.join(os.getcwd(), "chrome_profile")
-    os.makedirs(user_data_dir, exist_ok=True)
-    
+    # 2. Setup Config
     config = uc.Config()
-    config.no_sandbox = True
-    config.user_data_dir = user_data_dir
+    config.browser_executable_path = chrome_path
+    config.no_sandbox = True  # Crucial for root/GitHub Actions
     
-    # Standard CI flags
+    # 3. Add CI-specific arguments
+    # We use --headless=new alongside xvfb for maximum stability
     args = [
+        "--headless=new",
         "--disable-gpu",
         "--disable-dev-shm-usage",
         "--disable-setuid-sandbox",
-        "--no-first-run",
         "--no-zygote",
-        "--single-process",
+        "--remote-debugging-port=9222"
     ]
     for arg in args:
         config.add_argument(arg)
 
-    print(f"Launching browser. Using data dir: {user_data_dir}")
+    print("Attempting to launch browser...")
     try:
-        # We increase the timeout significantly to allow Xvfb to catch up
-        browser = await uc.start(config=config, timeout=30)
+        # High timeout for slow CI environments
+        browser = await uc.start(config=config, timeout=40)
         
+        print("Successfully connected to browser!")
         page = await browser.get("https://www.google.com")
-        print(f"Connection Successful! Title: {page.title}")
         
-        await page.save_screenshot("nodriver_result.png")
+        print(f"Current page title: {page.title}")
+        await page.save_screenshot("nodriver_final.png")
+        
         await browser.stop()
         
     except Exception as e:
-        print(f"Browser launch failed: {e}")
-        # List files to see if a crash dump or log was created
+        print(f"CRITICAL ERROR: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
