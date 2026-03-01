@@ -5,30 +5,31 @@ import sys
 async def main():
     print("Directly attaching to Chrome on 127.0.0.1:9222...")
     
-    # We bypass the start() wrapper to avoid the root-user check
+    # We initialize the config manually
     config = uc.Config()
+    
+    # This is the "Magic" part: 
+    # By setting these, we trick nodriver into skipping the root-user check
+    config.no_sandbox = True
+    config.browser_executable_path = None 
     config.browser_base_endpoint = "http://127.0.0.1:9222"
     
     try:
-        # Create the browser instance directly from the config
-        browser = await uc.Browser.create(config)
+        # We use the lower-level start method with our 'pre-verified' config
+        browser = await uc.start(config)
         
-        print("Successfully attached! Loading page...")
-        # Note: In nodriver, browsers start with a default tab
+        print("Successfully attached! Navigating...")
         page = await browser.get("https://www.google.com")
         
-        print(f"Success! Page title is: {page.title}")
+        print(f"Success! Page title: {page.title}")
         
-        await asyncio.sleep(3)
+        await asyncio.sleep(2)
         await page.save_screenshot("nodriver_final.png")
         
-        print("Screenshot saved. Disconnecting...")
-        # We stop the connection, not the browser process (YAML handles the process)
         await browser.stop()
         
     except Exception as e:
         print(f"Connection failed: {e}")
-        # Print more info to debug if it still fails
         sys.exit(1)
 
 if __name__ == "__main__":
