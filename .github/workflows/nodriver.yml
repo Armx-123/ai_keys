@@ -26,7 +26,7 @@ jobs:
       - name: Test Chrome Startup
         run: |
           google-chrome --version
-          google-chrome --headless --no-sandbox --disable-gpu --dump-dom https://example.com
+          google-chrome --headless --no-sandbox --disable-gpu --dump-dom https://notegpt.io/ai-image-editor
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
