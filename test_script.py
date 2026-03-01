@@ -5,28 +5,28 @@ import sys
 async def main():
     print("Directly attaching to Chrome on 127.0.0.1:9222...")
     
+    # We manually build the config to be as empty as possible
+    # This stops the library from trying to "verify" a local browser
     config = uc.Config()
-    config.browser_executable_path = "/usr/bin/google-chrome" 
     config.browser_base_endpoint = "http://127.0.0.1:9222"
     config.no_sandbox = True
-    
-    try:
-        browser = await uc.start(config, timeout=30)
-        print("Successfully attached!")
+    config.browser_executable_path = None
 
-        # Getting the first tab
+    try:
+        # We use .create() instead of .start() to avoid the 'root' check logic
+        browser = await uc.Browser.create(config)
+        
+        print("Successfully attached! Loading page...")
+        # Get the first open tab/page
         page = await browser.get("https://www.google.com")
         
-        # In nodriver, title is a property, NOT an awaited function
+        # page.title is a property, not a method
         print(f"Success! Page title: {page.title}")
         
-        # Wait for the page to actually load before screenshot
-        await page.sleep(3) 
-        
-        print("Taking screenshot...")
+        await page.sleep(3)
         await page.save_screenshot("nodriver_final.png")
         
-        # Just close the connection, don't await a return value
+        # Just disconnect, don't try to kill the process (YAML handles pkill)
         browser.stop()
         print("Done!")
         
