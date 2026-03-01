@@ -20,7 +20,7 @@ async def main():
         )
 
         print("Opening Google...")
-        page = await browser.get("https://www.google.com")
+        page = await browser.get("https://www.youtube.com/shorts/hNino-p5jx0")
 
         print("Page title:", page.title)
 
