@@ -32,11 +32,11 @@ jobs:
           Xvfb :99 -screen 0 1920x1080x24 &
           export DISPLAY=:99
           
-          # 2. Launch Chrome manually with Remote Debugging
-          # Added --remote-allow-origins=* to ensure the connection isn't blocked
+          # 2. Launch Chrome manually in the background
           google-chrome \
             --remote-debugging-port=9222 \
             --remote-allow-origins=* \
+            --headless=new \
             --no-sandbox \
             --disable-setuid-sandbox \
             --disable-dev-shm-usage \
@@ -45,8 +45,8 @@ jobs:
             --no-zygote \
             --user-data-dir=/tmp/chrome-profile &
           
-          echo "Waiting for Chrome DevTools to wake up..."
-          sleep 15
+          echo "Waiting for Chrome to fully settle..."
+          sleep 20
           
           # 3. Run the script
           python test_script.py
