@@ -5,20 +5,18 @@ import sys
 async def main():
     print("Directly attaching to Chrome on 127.0.0.1:9222...")
     
-    # We initialize the config manually
+    # We provide a real path so the library doesn't throw a 'NoneType' error,
+    # but we force the endpoint so it connects to our running instance.
     config = uc.Config()
-    
-    # This is the "Magic" part: 
-    # By setting these, we trick nodriver into skipping the root-user check
-    config.no_sandbox = True
-    config.browser_executable_path = None 
+    config.browser_executable_path = "/usr/bin/google-chrome" 
     config.browser_base_endpoint = "http://127.0.0.1:9222"
+    config.no_sandbox = True
     
     try:
-        # We use the lower-level start method with our 'pre-verified' config
-        browser = await uc.start(config)
+        # We use a high timeout to ensure the websocket handshake completes
+        browser = await uc.start(config, timeout=30)
         
-        print("Successfully attached! Navigating...")
+        print("Successfully attached! Loading page...")
         page = await browser.get("https://www.google.com")
         
         print(f"Success! Page title: {page.title}")
